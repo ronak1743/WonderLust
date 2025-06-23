@@ -6,13 +6,14 @@ const WrapAsync=require("../utile/WeapAsync.js");
 const { isLoggedin, getUrl } = require("../middleware.js");
 
 
-app.get("/signup",userController.renderSignupFrom);
+app
+    .route("/signup").get(userController.renderSignupFrom)
+    .post(WrapAsync(userController.signup));
 
-app.post("/signup",WrapAsync(userController.signup));
-
-app.get("/login",userController.renderLoginFrom);
-
-app.post("/login",getUrl, passport.authenticate("local", {
+app
+    .route("/login")
+    .get(userController.renderLoginFrom)
+    .post(getUrl, passport.authenticate("local", {
     failureRedirect: "/login",
     failureFlash: true
 }),userController.login);
