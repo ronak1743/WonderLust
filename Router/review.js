@@ -6,19 +6,12 @@ const {reviewSchema}=require("../Schemajoi.js");
 const wrapasync=require("../utile/WeapAsync.js");
 const ExpressError=require("../utile/ExpressError.js");
 
-let validateReview=(req,res,next)=>{
-let result=reviewSchema.validate(req.body);
-   if(result.error){
-    throw new ExpressError(400,result.error);
-   }
-   else{
-    next();
-   }
-}
+const {validateReview,isLoggedin,isOwnerOfReview}=require("../middleware.js");
 
-app.post("/",validateReview,wrapasync(async(req,res)=>{
+app.post("/",isLoggedin,validateReview,wrapasync(async(req,res)=>{
     let listing=await Listing.findById(req.params.id);
     let newReview=new Review(req.body.review);
+    newReview.auther=req.user._id;
     listing.reviews.push(newReview);
     await newReview.save();
     await listing.save();
@@ -27,12 +20,12 @@ app.post("/",validateReview,wrapasync(async(req,res)=>{
 
 }));
 
-app.delete("/:reviewId",wrapasync(async(req,res)=>{
+app.delete("/:reviewId",isLoggedin,isOwnerOfReview,wrapasync(async(req,res)=>{
     let {id,reviewId}=req.params;
     await Listing.findByIdAndUpdate(id,{$pull:{reviews:reviewId}});
     await Review.findByIdAndDelete(reviewId);
      req.flash("success","Review Deleted");
-    res.redirect(`/listing/${id}`);
+     res.redirect(`/listing/${id}`);
 }))
 
 module.exports=app;

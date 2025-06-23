@@ -8,37 +8,39 @@
             <img src="<%=data.image?.url%>" class="card-img-top show-img" alt="Listing image">
             <div class="card-body">
                 <p class="card-text">
-                    <b>
-                        <%=data.title %>
-                    </b>
-                    <br>
+                    <p>
+                        Owned By: <i><%= data.owner.username %></i>
+                    </p>
+                    <p>
                     <%=data.description%>
-                    <br>
+                    </p>
+                    <p>
                     &#8377; <%=data.price.toLocaleString("en-IN")%>
-                    <br>
-                        
+                    </p>
+                        <p>
                     <%=data.location%>
-                    <br>
-                            
+                   </p>
+                     <p>      
                     <%=data.country%>
-                    <br>
-
+                    </p> 
                 </p>
             </div>
         </div>
 
-        <br>
+        <% if(curUser){ %>
+            <br>     
         <div class="btns">
             <a class="btn btn-dark col-1 offset-3" id="edit-btn" href="/listing/<%=data._id%>/update">Edit</a>
 
             <form action="/listing/<%=data._id%>?_method=DELETE" method="post">
                 <button type="submit" class="btn btn-dark offset-5">Delete</button>
             </form>
-        </div>
-
+        </div>  
+        <% } %>     
 
         <div class="col-8 offset-3 mb-3">
             <hr>
+            <% if(curUser){%>
             <h4>Leave a Review</h4>
             <form action="/listing/<%=data._id%>/review" method="post" novalidate class="needs-validation">  
                 <div class="mb-3 mt-3">
@@ -54,6 +56,7 @@
             </form>
 
             <hr>
+            <% } %>
             <p><b>All Reviews</b></p>
             
 
@@ -61,7 +64,7 @@
             <% for(review of data.reviews){ %>
                 <div class="card col-5 ms-3 mb-3">
                     <div class="card-body">
-                        <h5 class="card-title">Developer</h5>
+                        <h5 class="card-title"><%=review.auther.username%></h5>
                         <p class="card-text"><%= review.comment %></p>
                         <p class="card-text"><%= review.rating %>stars</p>
                         <form action="/listing/<%=data._id%>/review/<%= review._id %>?_method=DELETE" class="mb-3" method="post">

@@ -1,16 +1,29 @@
 const express=require("express");
 const app=express();
+
 const mongoose=require("mongoose");
+
 const port=8080;
 const path=require("path");
+
 const methodOverride = require("method-override");
 app.use(methodOverride("_method"));
+
 const ejsMate=require("ejs-mate");
+
 const ExpressError=require("./utile/ExpressError.js");
-const listing=require("./Router/listing.js");
-const review=require("./Router/review.js");
+
+const listingRouter=require("./Router/listing.js");
+const reviewRouter=require("./Router/review.js");
+const userRouter=require("./Router/user.js");
+
 let session = require('express-session');
 let flash=require("connect-flash");
+
+const LocalStrategy=require("passport-local");
+const passport=require("passport");
+const User=require("./models/user.js");
+
 
 const sessioncontent={
   secret: 'keyboard cat',
@@ -26,6 +39,14 @@ const sessioncontent={
 
 app.use(session(sessioncontent));
 app.use(flash());
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.use(new LocalStrategy(User.authenticate()));
+
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
 app.use(express.urlencoded({ extended: true }));
 app.set("view engine","ejs");
@@ -46,11 +67,14 @@ async function main() {
 app.use((req, res, next) => {
     res.locals.success = req.flash("success");
     res.locals.error = req.flash("error");
+    res.locals.curUser=req.user;
     next();
 });
 
-app.use("/listing",listing);
-app.use("/listing/:id/review",review);
+app.use("/listing",listingRouter);
+app.use("/listing/:id/review",reviewRouter);
+app.use("/",userRouter);
+
 app.listen(port,()=>{
     console.log("Server is listning on port 8080");
 })

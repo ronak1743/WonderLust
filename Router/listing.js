@@ -2,29 +2,19 @@ const express=require("express");
 const app=express.Router();
 const Listing=require("../models/listing.js");
 const wrapasync=require("../utile/WeapAsync.js");
-const ExpressError=require("../utile/ExpressError.js");
-const {listingSchema}=require("../Schemajoi.js");
-
-let validate=(req,res,next)=>{
-let result=listingSchema.validate(req.body);
-   if(result.error){
-    throw new ExpressError(400,result.error);
-   }
-   else{
-    next();
-   }
-}
+const {isLoggedin,isOwner}=require("../middleware.js");
+const {validate}=require("../middleware.js");
 
 app.get("/",wrapasync( async (req, res) => {
     let data = await Listing.find({});
     res.render("listing/index", { data });
 }));
 
-app.get("/new",wrapasync(async (req,res)=>{
+app.get("/new",isLoggedin,wrapasync(async (req,res)=>{
     res.render("listing/new");
 }));
 
-app.get("/:id/update",wrapasync(async (req,res)=>{
+app.get("/:id/update",isLoggedin,isOwner,wrapasync(async (req,res)=>{
     let {id}=req.params;
     let data=await Listing.findById(id);
      if(!data){
@@ -39,19 +29,21 @@ app.get("/:id/update",wrapasync(async (req,res)=>{
 
 app.get("/:id",wrapasync( async (req,res)=>{
     let {id}=req.params;
-    let data=await Listing.findById(id).populate("reviews");
+    let data=await Listing.findById(id).populate({path:"reviews" , populate:{path:"auther"}}).populate("owner");
     if(!data){
         req.flash("error","Listing you requested for does not exist!");
         res.redirect("/listing");
     }
     else{
-        res.render("listing/show",{data});
+        res.render("listing/show.ejs",{data});
     }
 }));
+
 
 app.post("/",validate,wrapasync(async (req,res,next)=>{
    
     let newdata=new Listing(req.body.listing);
+    newdata.owner=req.user._id;
     await newdata.save();
     req.flash("success","New Listing created");
     res.redirect("/listing");
@@ -59,17 +51,18 @@ app.post("/",validate,wrapasync(async (req,res,next)=>{
     
 }));
 
-app.put("/:id",validate, wrapasync(async (req,res)=>{
+app.put("/:id",isLoggedin,isOwner,validate, wrapasync(async (req,res)=>{
     
     let {id}=req.params;
-    await Listing.findByIdAndUpdate(id,req.body.listing, { runValidators: true, new: true });
+    
+        await Listing.findByIdAndUpdate(id,req.body.listing, { runValidators: true, new: true });
+        req.flash("success","Listing Updated");
+    
     let s="/listing/"+id;
-
-    req.flash("success","Listing Updated");
     res.redirect(s);
 }));
 
-app.delete("/:id",wrapasync(async (req,res)=>{
+app.delete("/:id",isLoggedin,isOwner,wrapasync(async (req,res)=>{
     let {id}=req.params;
     await Listing.findByIdAndDelete(id);
     req.flash("success","Listing Deleted");
