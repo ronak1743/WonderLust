@@ -17,7 +17,9 @@ module.exports.renderEditForm=async (req,res)=>{
         res.redirect("/listing");
     }
     else{
-        res.render("listing/update",{data});
+        let newurl=data.image.url;
+        newurl=newurl.replace("/upload","/upload/w_250");
+        res.render("listing/update.ejs",{data,newurl});
     }
     // res.send("hi");
 }
@@ -43,17 +45,20 @@ module.exports.postNewList=async (req,res,next)=>{
     await newdata.save();
     req.flash("success","New Listing created");
     res.redirect("/listing");
-    
-    
 }
 
 module.exports.putUpdatedList=async (req,res)=>{
     
     let {id}=req.params;
-    
-        await Listing.findByIdAndUpdate(id,req.body.listing, { runValidators: true, new: true });
-        req.flash("success","Listing Updated");
-    
+    console.log("Uploaded file:", req.file);
+    let listingimg=await Listing.findByIdAndUpdate(id,req.body.listing);
+    if(typeof req.file!="undefined"){
+        let url=req.file.path;
+        let filename=req.file.filename;
+        listingimg.image={url,filename};
+        await listingimg.save();
+    }
+    req.flash("success","Listing Updated");
     let s="/listing/"+id;
     res.redirect(s);
 };

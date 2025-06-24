@@ -20,7 +20,7 @@ app.get("/:id/update",isLoggedin,isOwner,wrapasync(listController.renderEditForm
 app
     .route("/:id")
     .get(wrapasync(listController.showListing))
-    .put(isLoggedin,isOwner,validate, wrapasync(listController.putUpdatedList))
+    .put(isLoggedin,isOwner,upload.single('listing[image][url]'),validate, wrapasync(listController.putUpdatedList))
     .delete(isLoggedin,isOwner,wrapasync(listController.deleteList));
 
 
