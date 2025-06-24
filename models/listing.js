@@ -9,12 +9,8 @@ const listingSchema = new Schema({
   },
   description: String, 
   image: {
-    type: {
-      url: String
-    },
-    default: () => ({
-      url: 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png'
-    })
+    url:String,
+    filename:{type:String,default:"listingimage"},
   },
   price: {
     type: Number,
