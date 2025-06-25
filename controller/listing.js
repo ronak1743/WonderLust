@@ -1,4 +1,5 @@
 const Listing=require("../models/listing.js");
+const axios = require('axios');
 
 module.exports.index=async (req, res) => {
     let data = await Listing.find({});
@@ -24,6 +25,38 @@ module.exports.renderEditForm=async (req,res)=>{
     // res.send("hi");
 }
 
+function createMapScript(lon,lat){
+    let key=process.env.Map_API_KEY;
+    let style=`https://api.maptiler.com/maps/streets/style.json?key=$key`;
+const mapScript = `
+  <script>
+    const lat = ${lat};
+    const lon = ${lon};
+    const map = new maplibregl.Map({
+      container: 'map',
+      style: 'https://api.maptiler.com/maps/streets/style.json?key=${key}',
+      center: [${lon}, ${lat}],
+      zoom: 12
+    });
+    new maplibregl.Marker().setLngLat([${lon}, ${lat}]).addTo(map);
+  </script>
+`;
+return mapScript;
+}
+async function geocodeCity(cityName, country) {
+  const location = `${cityName}, ${country}`;
+  const apiKey = process.env.Map_API_KEY;
+  const url = `https://api.maptiler.com/geocoding/${encodeURIComponent(location)}.json?key=${apiKey}`;
+
+  const response = await axios.get(url);
+
+  if (response.data.features && response.data.features.length > 0) {
+    const [lon, lat] = response.data.features[0].geometry.coordinates;
+    return { lat, lon };
+  } else {
+    throw new Error("Location not found");
+  }
+}
 module.exports.showListing= async (req,res)=>{
     let {id}=req.params;
     let data=await Listing.findById(id).populate({path:"reviews" , populate:{path:"auther"}}).populate("owner");
@@ -32,7 +65,16 @@ module.exports.showListing= async (req,res)=>{
         res.redirect("/listing");
     }
     else{
-        res.render("listing/show.ejs",{data});
+        try{
+            let {lat,lon}=await geocodeCity(data.location,data.country);
+            let mapScript=createMapScript(lon,lat);
+            return res.render("listing/show.ejs",{data,mapScript});
+        }
+        catch(err){
+            req.flash("error","can't Find city on map");
+            return res.render("listing/show.ejs",{data,mapScript:""});
+
+        }
     }
 }
 
