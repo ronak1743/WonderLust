@@ -81,9 +81,9 @@ app.listen(port,()=>{
     console.log("Server is listning on port 8080");
 })
 
-app.get("/",(req,res)=>{
-    res.send("Hi,I am root");
-})
+// app.get("/",(req,res)=>{
+//     res.send("Hi,I am root");
+// })
 
 app.use((req,res,next)=>{
     next(new ExpressError(404,"Page not found!!"));
