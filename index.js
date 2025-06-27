@@ -4,7 +4,7 @@ if(process.env.NODE_ENV!='production'){
     require("dotenv").config();
 }
 const mongoose=require("mongoose");
-
+const dburl=process.env.ATLASDB_URL;
 const port=8080;
 const path=require("path");
 
@@ -21,14 +21,26 @@ const userRouter=require("./Router/user.js");
 
 let session = require('express-session');
 let flash=require("connect-flash");
+const MongoStore=require("connect-mongo");
 
 const LocalStrategy=require("passport-local");
 const passport=require("passport");
 const User=require("./models/user.js");
 
 
+const store=MongoStore.create({
+    mongoUrl:dburl,
+    crypto:{
+        secret: process.env.SECRET,
+    },
+    touchAfter:24*3600,
+});
+store.on("err",()=>{
+    console.log("ERROR in MONGO SESION STORE");
+})
 const sessioncontent={
-  secret: 'keyboard cat',
+    store,
+  secret: process.env.SECRET,
   resave: false,
   saveUninitialized: true,
   cookie:{
@@ -36,7 +48,6 @@ const sessioncontent={
     maxAge:7*24*60*60*1000,
     httpOnly:true,
   }
-  
 };
 
 app.use(session(sessioncontent));
@@ -63,7 +74,7 @@ main().then(()=>{
     console.log(err);
 });
 async function main() {
-    await mongoose.connect("mongodb://127.0.0.1:27017/wanderlust")
+    await mongoose.connect(dburl);
 }
 
 app.use((req, res, next) => {

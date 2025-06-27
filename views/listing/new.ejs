@@ -22,13 +22,15 @@
         </div>
         <div class="mb-3">
             <label for="image" class="form-lable">Upload Listing Image</label>
-            <input type="file" name="listing[image][url]" id="Image"  class="form-control">
+            <input type="file" name="listing[image][url]" id="Image"  class="form-control" required>
+            <div class="valid-feedback">image looks good</div>
+            <div class="invalid-feedback">image should be valid</div>
 
         </div>
         <div class="row">
         <div class="mb-3 col-md-6">
             <label for="image" class="form-lable">price</label>
-            <input name="listing[price]" id="price" placeholder="Enter price" class="form-control" required>
+            <input type="number" name="listing[price]" id="price" placeholder="Enter price" class="form-control" required>
             <div class="valid-feedback">price looks good</div>
             <div class="invalid-feedback">price should be valid</div>
         </div>

@@ -28,7 +28,9 @@
                     <div class="mb-3">
                         <div class="mb-3">
                             <label for="image" class="form-lable">Upload Listing Image</label>
-                            <input type="file" name="listing[image][url]" id="Image" class="form-control">
+                            <input type="file" name="listing[image][url]" id="Image" class="form-control" required>
+                            <div class="valid-feedback">image looks good</div>
+                            <div class="invalid-feedback">image should be valid</div>
 
                         </div>
                     </div>
